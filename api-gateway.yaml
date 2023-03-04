@@ -34,26 +34,6 @@ Resources:
         RestApiId: !Ref Api
         PathPart: '{proxy+}'
 
-    RootMethod:
-      Condition: IsAPIBasePathNotEmpty
-      Type: 'AWS::ApiGateway::Method'
-      Properties:
-        HttpMethod: ANY
-        ResourceId: !GetAtt Api.RootResourceId
-        RestApiId: !Ref Api
-        AuthorizationType: NONE
-        Integration:
-          IntegrationHttpMethod: ANY
-          ConnectionType: VPC_LINK
-          ConnectionId: !ImportValue ApiGatewayVpcLink        
-          Type: HTTP_PROXY
-          Uri: !Sub 
-            - "http://${DNSNLB}${APIBasePath}"
-            - DNSNLB: !ImportValue DNSNLB
-          PassthroughBehavior: WHEN_NO_MATCH
-          IntegrationResponses:
-            - StatusCode: 200
-
     ProxyMethod:
       Condition: IsAPIBasePathNotEmpty
       Type: 'AWS::ApiGateway::Method'
@@ -72,7 +52,7 @@ Resources:
           ConnectionId: !ImportValue ApiGatewayVpcLink
           Type: HTTP_PROXY
           Uri: !Sub 
-            - "http://${DNSNLB}${APIBasePath}"
+            - "http://${DNSNLB}/{proxy}"
             - DNSNLB: !ImportValue DNSNLB
           PassthroughBehavior: WHEN_NO_MATCH
           IntegrationResponses:
@@ -81,7 +61,6 @@ Resources:
     Deployment:
       Condition: IsAPIBasePathNotEmpty    
       DependsOn:
-        - RootMethod
         - ProxyMethod
       Type: 'AWS::ApiGateway::Deployment'
       Properties:
