@@ -16,7 +16,7 @@ env:
   AWS_ECS_SERVICE_NAME: api-candidates
   CONSULTORA: hello-world
   CONTAINER_PORT: 8000
-  API_BASE_PATH: /api/v1/candidates
+  API_BASE_PATH: /api/v1/
   HEALTH_PATH: /api/v1/health
   PRIORIDAD_LISTENER: 3
   BUILDPACK: paketo-buildpacks/java
