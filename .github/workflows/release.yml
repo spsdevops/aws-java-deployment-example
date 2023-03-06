@@ -68,8 +68,8 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v1-node16
       with: 
         aws-region: ${{ env.AWS_DEPLOY_REGION }}
-        role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE }} 
-        role-session-name: github-deploy-paketo
+        role-to-assume: arn:aws:iam::${{secrets.DEV_AWS_ACCOUNT_ID}}:role/github-actions-deploy-role
+        role-session-name: ${{ github.event.repository.name }}
 
     - name: Reemplazo de ARN's en Task Definition
       run: |
