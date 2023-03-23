@@ -1,0 +1,3 @@
+BP_JAVA_APP_SERVER=liberty 
+BP_LIBERTY_INSTALL_TYPE=wlp 
+BP_MAVEN_BUILT_ARTIFACT="target/*.[ejw]ar src/main/liberty/config/"
