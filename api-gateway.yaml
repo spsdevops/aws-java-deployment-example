@@ -1,33 +1,36 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: ""
 Parameters:
+  NombreVPC:
+    Type: String
+    Default: "NMP-Servicios"
+  ApiAlbNumber:
+    Type: String
+    Default: "1"
   ServiceName:
     Type: String
     Description: Nombre del microservicio
-    Default: paketo
-  APIBasePath:
-    Type: String 
-    Description: Basepath en API Gateway
-    Default: "" 
   StageName:
     Type: String 
-    Description: Nombre del stage del API Gateway estándar
-    Default: api        
+    Description: Nombre del stage del API Gateway
+    Default: "api"
+  ClusterName:
+    Type: String
+    Description: Nombre de la consultora   
+
 ##############################
 # Definición de API Gateway  #
 ##############################
-Conditions:
-  IsAPIBasePathNotEmpty:  !Not [!Equals [!Ref "APIBasePath", ""]]
-
 Resources:
     Api:
-      Condition: IsAPIBasePathNotEmpty
       Type: 'AWS::ApiGateway::RestApi'
       Properties:
         Name: !Ref ServiceName
-
+        Tags: 
+          - Key: cluster_ECS
+            Value: !Ref ClusterName
+      
     Resource:
-      Condition: IsAPIBasePathNotEmpty
       Type: 'AWS::ApiGateway::Resource'
       Properties:
         ParentId: !GetAtt Api.RootResourceId
@@ -35,10 +38,10 @@ Resources:
         PathPart: '{proxy+}'
 
     ProxyMethod:
-      Condition: IsAPIBasePathNotEmpty
       Type: 'AWS::ApiGateway::Method'
       Properties:
         HttpMethod: ANY
+        ApiKeyRequired: true
         ResourceId: !Ref Resource
         RestApiId: !Ref Api
         AuthorizationType: NONE
@@ -49,20 +52,65 @@ Resources:
             integration.request.path.proxy: 'method.request.path.proxy'
           IntegrationHttpMethod: ANY
           ConnectionType: VPC_LINK
-          ConnectionId: !ImportValue ApiGatewayVpcLink
+          ConnectionId: 
+            Fn::ImportValue: !Sub "${NombreVPC}-ApiNlbApiGatewayVpcLink"
           Type: HTTP_PROXY
           Uri: !Sub 
             - "http://${DNSNLB}/{proxy}"
-            - DNSNLB: !ImportValue DNSNLB
+            - DNSNLB: 
+                Fn::ImportValue: !Sub "${NombreVPC}-ApiNlbDNS${ApiAlbNumber}"
           PassthroughBehavior: WHEN_NO_MATCH
-          IntegrationResponses:
-            - StatusCode: 200
 
     Deployment:
-      Condition: IsAPIBasePathNotEmpty    
       DependsOn:
         - ProxyMethod
       Type: 'AWS::ApiGateway::Deployment'
       Properties:
         RestApiId: !Ref Api
         StageName: !Ref StageName
+
+    ApiKey: 
+      Type: AWS::ApiGateway::ApiKey
+      Properties: 
+        Name: !Sub "${ServiceName}-API-Key"
+        Description: !Sub "${ServiceName} API Key"
+        Enabled: true
+        GenerateDistinctId: false
+        Tags: 
+        - Key: cluster_ECS
+          Value: !Ref ClusterName
+
+    ApiUsagePlan:
+      DependsOn:
+       - Deployment
+      Type: "AWS::ApiGateway::UsagePlan"
+      Properties:
+        ApiStages: 
+        - ApiId: !Ref Api
+          Stage: !Ref StageName    
+        Description: !Sub "${ServiceName} Usage Plan"
+        UsagePlanName: !Sub "${ServiceName}-usage-plan"
+        Tags: 
+        - Key: cluster_ECS
+          Value: !Ref ClusterName
+
+    ApiUsagePlanKey:
+      Type: "AWS::ApiGateway::UsagePlanKey"
+      Properties:
+        KeyId: !Ref ApiKey
+        KeyType: API_KEY
+        UsagePlanId: !Ref ApiUsagePlan
+
+
+Outputs:
+  ApiKey:
+    Description: API Key ID
+    Value: !Ref ApiKey
+    Export:
+      Name: !Sub ${ServiceName}-ApiKey
+
+  Api:
+    Description: API ID
+    Value: !Ref Api
+    Export:
+      Name: !Sub ${ServiceName}-ApiId
