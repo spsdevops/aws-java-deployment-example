@@ -71,6 +71,7 @@ jobs:
         
     
     - name: SonarQube Scan
+      if: ${{ env.JAVA_TOOL != 'maven' && env.JAVA_TOOL != 'gradle'}}
       uses: sonarsource/sonarqube-scan-action@master
       env:
         SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
