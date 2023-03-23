@@ -30,7 +30,7 @@ env:
   BUILDPACK_BUILDER: paketobuildpacks/builder:base
   BUILDPACK_ENV_FILE: .buildpackenv
   SONAR_PROJECT_KEY: java_maven
-
+  JAVA_TOOL: maven
   
 jobs:
 
