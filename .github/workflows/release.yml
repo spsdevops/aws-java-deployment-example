@@ -98,10 +98,18 @@ jobs:
     - id: setup-pack
       uses: buildpacks/github-actions/setup-pack@v4.9.0
 
-    - name: build image
+    - name: build image Java
+      if: ${{ env.BUILDPACK_LANGUAGE == 'paketo-buildpacks/java'}}
       run: |
         pack build ${{ secrets.DOCKER_HUB_USER }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
         --builder ${{ env.BUILDPACK_BUILDER }} --path . --buildpack paketo-buildpacks/eclipse-openj9 --buildpack ${{ env.BUILDPACK_LANGUAGE }} \
+        --env-file ${{ env.BUILDPACK_ENV_FILE }}
+
+    - name: build image
+      if: ${{ env.BUILDPACK_LANGUAGE != 'paketo-buildpacks/java'}}
+      run: |
+        pack build ${{ secrets.DOCKER_HUB_USER }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+        --builder ${{ env.BUILDPACK_BUILDER }} --path . --buildpack ${{ env.BUILDPACK_LANGUAGE }} \
         --env-file ${{ env.BUILDPACK_ENV_FILE }}
 
     - name: Push Image
