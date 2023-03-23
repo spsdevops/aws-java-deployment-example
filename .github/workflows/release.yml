@@ -14,14 +14,14 @@ on:
 
 env:
   
-  SERVICE_NAME: api-candidates-gradle
+  SERVICE_NAME: api-candidates-maven
   SERVICE_PORT: 8000
-  SERVICE_BASE_PATH: /v1
-  SERVICE_HEALTH_PATH: /actuator/health
+  SERVICE_BASE_PATH: /api/v1/
+  SERVICE_HEALTH_PATH: /api/v1/health
   
   AWS_ECS_CLUSTER: sps
   AWS_ALB_NUMBER: 1
-  AWS_ALB_PRIORITY: 4
+  AWS_ALB_PRIORITY: 3
   AWS_VPC_NAME: NMP-Servicios
   AWS_DEPLOY_REGION: us-east-2
   AWS_SAM_VERSION: 1.37.0
@@ -29,7 +29,7 @@ env:
   BUILDPACK_LANGUAGE: paketo-buildpacks/java
   BUILDPACK_BUILDER: paketobuildpacks/builder:base
   BUILDPACK_ENV_FILE: .buildpackenv
-  SONAR_PROJECT_KEY: java_gradle
+  SONAR_PROJECT_KEY: java_maven
 
   
 jobs:
