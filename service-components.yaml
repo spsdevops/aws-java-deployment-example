@@ -1,7 +1,13 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: ""
 Parameters:
-  Consultora:
+  NombreVPC:
+    Type: String
+    Default: NMP-Servicios
+  ApiAlbNumber:
+    Type: String
+    Default: "1"
+  ClusterName:
     Type: String
     Description: Nombre de la consultora
   ServiceName:
@@ -21,11 +27,10 @@ Parameters:
   ContainerPort:
     Type: Number
     Description: port number exposed from the container image.
-    Default: 8001
+    Default: 80
   PrioridadListener:
     Type: Number
     Description: Prioridad de de la regla en el listener. No se debe repetir.
-    Default: 1
 
 Resources:
     ElasticLoadBalancingV2TargetGroup:
@@ -44,7 +49,8 @@ Resources:
             Matcher: 
                 HttpCode: "200"
             HealthyThresholdCount: 5
-            VpcId: !ImportValue ServicesVPC
+            VpcId: 
+              Fn::ImportValue: !Sub "${NombreVPC}-VPC"
             Name: !Sub "${ServiceName}-1"          
             HealthCheckEnabled: true
             TargetGroupAttributes: 
@@ -89,7 +95,8 @@ Resources:
             # Se recomienda que permanezca el wildcard.
             Values: 
               - !Sub "${APIBasePath}*"
-        ListenerArn: !ImportValue ElasticLoadBalancingV2Listener
+        ListenerArn:
+          Fn::ImportValue: !Sub "${NombreVPC}-ApiAlbListener${ApiAlbNumber}"
         Priority: !Ref PrioridadListener
 
     ECSService:
@@ -99,7 +106,7 @@ Resources:
           - ALBListenerProdRule
         Properties:
             ServiceName: !Ref ServiceName
-            Cluster: !Sub "ECSCluster-${Consultora}"
+            Cluster: !Ref ClusterName
             LoadBalancers: 
               - 
                 TargetGroupArn: !Ref ElasticLoadBalancingV2TargetGroup
@@ -118,7 +125,7 @@ Resources:
                     SecurityGroups: 
                       - !Ref EC2SecurityGroup
                     Subnets: 
-                      - !ImportValue PrivateSubnet1a
+                      - Fn::ImportValue: !Sub "${NombreVPC}-PrivateSubnet1a"
             HealthCheckGracePeriodSeconds: 0
             SchedulingStrategy: "REPLICA"
             DeploymentController: 
@@ -129,11 +136,11 @@ Resources:
         Properties:
             GroupDescription: "SG para ms"
             GroupName: !Sub ${ServiceName}-sg
-            VpcId: !ImportValue ServicesVPC
+            VpcId:
+              Fn::ImportValue: !Sub "${NombreVPC}-VPC"
             SecurityGroupIngress: 
               - 
-                SourceSecurityGroupId: !ImportValue VPCDefaultSecurityGroup
-                SourceSecurityGroupOwnerId: !Ref AWS::AccountId
+                CidrIp: "10.0.0.0/16"
                 FromPort: !Ref ContainerPort
                 IpProtocol: "tcp"
                 ToPort: !Ref ContainerPort
@@ -145,5 +152,8 @@ Resources:
     TaskLogGroup:
       Type: 'AWS::Logs::LogGroup'
       Properties:
-        LogGroupName: !Sub '/ecs/${ServiceName}'
+        LogGroupName: !Sub '/ecs/${ClusterName}/${ServiceName}'
         RetentionInDays: 30
+        Tags: 
+          - Key: cluster_ECS
+            Value: !Ref ClusterName     
