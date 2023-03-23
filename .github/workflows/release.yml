@@ -52,11 +52,20 @@ jobs:
       with:
         distribution: temurin
         java-version: 11
-        
+        cache: ${{env.JAVA_TOOL}}
+
     - name: Setup Gradle
+      if: ${{ env.JAVA_TOOL == 'gradle'}}
       uses: gradle/gradle-build-action@v2
     
+    - name: Execute Gradle SonarQube
+      if: ${{ env.JAVA_TOOL == 'gradle'}}
+      run: |
+        chmod +x gradlew
+        sudo ./gradlew sonar -D "sonar.projectKey=${{env.SONAR_PROJECT_KEY}}" -D "sonar.host.url=${{ secrets.SONARQUBE_HOST }}" -D "sonar.login=${{ secrets.SONARQUBE_TOKEN }}" -D "sonar.projectName=${{env.SONAR_PROJECT_KEY}}"
+
     - name: Execute Maven SonarQube
+      if: ${{ env.JAVA_TOOL == 'maven'}}
       run: |
         mvn clean verify sonar:sonar -D "sonar.projectKey=${{env.SONAR_PROJECT_KEY}}" -D "sonar.host.url=${{ secrets.SONARQUBE_HOST }}" -D "sonar.login=${{ secrets.SONARQUBE_TOKEN }}" -D "sonar.projectName=${{env.SONAR_PROJECT_KEY}}"
         
