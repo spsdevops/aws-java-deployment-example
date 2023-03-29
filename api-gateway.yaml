@@ -27,7 +27,7 @@ Resources:
       Properties:
         Name: !Ref ServiceName
         Tags: 
-          - Key: clusterECS
+          - Key: ClusterECS
             Value: !Ref ClusterName
       
     Resource:
@@ -77,7 +77,7 @@ Resources:
         Enabled: true
         GenerateDistinctId: false
         Tags: 
-        - Key: clusterECS
+        - Key: ClusterECS
           Value: !Ref ClusterName
 
     ApiUsagePlan:
@@ -91,7 +91,7 @@ Resources:
         Description: !Sub "${ServiceName} Usage Plan"
         UsagePlanName: !Sub "${ServiceName}-usage-plan"
         Tags: 
-        - Key: clusterECS
+        - Key: ClusterECS
           Value: !Ref ClusterName
 
     ApiUsagePlanKey:

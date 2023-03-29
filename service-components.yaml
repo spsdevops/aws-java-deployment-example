@@ -155,5 +155,5 @@ Resources:
         LogGroupName: !Sub '/ecs/${ClusterName}/${ServiceName}'
         RetentionInDays: 30
         Tags: 
-          - Key: clusterECS
+          - Key: ClusterECS
             Value: !Ref ClusterName     
