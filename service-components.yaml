@@ -119,6 +119,9 @@ Resources:
             DeploymentConfiguration: 
                 MaximumPercent: 200
                 MinimumHealthyPercent: 100
+                DeploymentCircuitBreaker:
+                  Enable: True
+                  Rollback: False
             NetworkConfiguration: 
                 AwsvpcConfiguration: 
                     AssignPublicIp: "DISABLED"
