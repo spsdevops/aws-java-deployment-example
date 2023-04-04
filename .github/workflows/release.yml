@@ -188,7 +188,7 @@ jobs:
       run: |
         sam deploy \
         -t service-components.yaml \
-        --stack-name ${{ env.SERVICE_NAME }}-service \
+        --stack-name service-${{ env.SERVICE_NAME }} \
         --no-fail-on-empty-changeset  \
         --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
         --no-confirm-changeset \
@@ -206,7 +206,7 @@ jobs:
       run: |
         sam deploy \
         -t service-components.yaml \
-        --stack-name ${{ env.SERVICE_NAME }}-service \
+        --stack-name service-${{ env.SERVICE_NAME }} \
         --no-fail-on-empty-changeset  \
         --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
         --no-confirm-changeset \
@@ -222,7 +222,7 @@ jobs:
       run: |
         sam deploy \
         -t api-gateway.yaml \
-        --stack-name ${{ env.SERVICE_NAME }}-api \
+        --stack-name api-${{ env.SERVICE_NAME }} \
         --no-fail-on-empty-changeset  \
         --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
         --no-confirm-changeset \
@@ -236,7 +236,7 @@ jobs:
       if: ${{ env.AWS_R53_SUB_DOMAIN == 'apis'}}
       run: |
         echo "Se obtiene APIKEY ID de los exports del stack"
-        APIKEY_ID=$(aws cloudformation --region ${{ env.AWS_DEPLOY_REGION }} describe-stacks --stack-name ${{ env.SERVICE_NAME }}-api \
+        APIKEY_ID=$(aws cloudformation --region ${{ env.AWS_DEPLOY_REGION }} describe-stacks --stack-name api-${{ env.SERVICE_NAME }} \
         --query 'Stacks[0].Outputs[?OutputKey==`ApiKey`].OutputValue' --output text)
 
         echo "Se obtiene el valor de la API Key"
